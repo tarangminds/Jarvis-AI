@@ -5,5 +5,5 @@ services:
     region: singapore
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port 8000
+    startCommand: ls -l && python -m uvicorn main:app --host 0.0.0.0 --port 8000
     autoDeploy: true
