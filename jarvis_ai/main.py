@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Header
 from pydantic import BaseModel
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from gtts import gTTS
 import uuid
 import os
@@ -9,7 +9,6 @@ import re
 
 app = FastAPI()
 
-# Load from environment variables
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 API_KEY = os.getenv("JARVIS_API_KEY")
 
@@ -43,8 +42,23 @@ async def generate_and_speak(request: PromptRequest, authorization: str = Header
     tts = gTTS(text=tts_text, lang='en')
     tts.save(filepath)
 
+    # Construct public URL for the audio file
+    base_url = os.getenv("BASE_URL")  # Set this in your environment, e.g. https://jarvis-ai-10.onrender.com
+    if not base_url:
+        base_url = "http://localhost:8000"  # fallback for local dev
+
+    audio_url = f"{base_url}/audio/{filename}"
+
     return JSONResponse({
         "message": "Audio generated successfully",
         "text": full_text,
-        "file_path": filepath
+        "audio_url": audio_url
     })
+
+@app.get("/audio/{filename}")
+async def get_audio(filename: str):
+    filepath = f"/tmp/{filename}"
+    if not os.path.isfile(filepath):
+        raise HTTPException(status_code=404, detail="Audio file not found")
+    return FileResponse(filepath, media_type="audio/mpeg")
+
