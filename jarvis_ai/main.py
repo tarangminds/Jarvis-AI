@@ -11,6 +11,7 @@ app = FastAPI()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 API_KEY = os.getenv("JARVIS_API_KEY")
+BASE_URL = os.getenv("BASE_URL", "https://jarvis-ai-10.onrender.com")  # default to deployed URL
 
 class PromptRequest(BaseModel):
     text: str
@@ -42,12 +43,7 @@ async def generate_and_speak(request: PromptRequest, authorization: str = Header
     tts = gTTS(text=tts_text, lang='en')
     tts.save(filepath)
 
-    # Construct public URL for the audio file
-    base_url = os.getenv("BASE_URL")  # Set this in your environment, e.g. https://jarvis-ai-10.onrender.com
-    if not base_url:
-        base_url = "http://localhost:8000"  # fallback for local dev
-
-    audio_url = f"{base_url}/audio/{filename}"
+    audio_url = f"{BASE_URL}/audio/{filename}"
 
     return JSONResponse({
         "message": "Audio generated successfully",
